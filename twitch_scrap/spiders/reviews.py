@@ -34,14 +34,14 @@ class ReviewsSpider(scrapy.Spider):
 class DropsSpider(scrapy.Spider):
     name = "drops"
     allowed_domains = ["twitch.tv", "www.google.com.ua"]
+    open_campaign_index = 4
+    closed_campaign_index = 6
     drop_block_names = {'open_reward_campaigns': {'word_separator': 'Drops Inventory'},
                         'open_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2},
                         'closed_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2}}
-    # start_urls = ["https://web-scraping.dev"]
 
     def start_requests(self):
         url = "https://www.twitch.tv/drops/campaigns"
-        # url = "https://www.google.com.ua/?hl=uk"
         yield SeleniumRequest(url=url, callback=self.parse)
 
     def login(self):
@@ -91,8 +91,9 @@ class DropsSpider(scrapy.Spider):
 
         separated_data = [value[0:4] for value in separated_data]
 
-        separated_data = list(map(lambda data_list: ({'Game': data_list[0], 'Company': data_list[1], 'Campaign dates': data_list[2],
-                                                     'Campaign name': data_list[3]}), separated_data))
+        separated_data = list(map(lambda data_list: ({'game': data_list[0], 'company': data_list[1],
+                                                      'campaign_dates': data_list[2],
+                                                      'campaign_name': data_list[3]}), separated_data))
 
         return separated_data
 
@@ -104,21 +105,24 @@ class DropsSpider(scrapy.Spider):
         return extracted_data
 
     def parse(self, response):
-        print("\n")
-        print("\n")
-        print("\n")
-        print("start scraping")
+        # print("\n")
+        # print("\n")
+        # print("\n")
+        # print("start scraping")
         drop_blocks = response.xpath("//div[@class='Layout-sc-1xcs6mc-0 jmLWIr drops-root__content']/div")
-        print(drop_blocks)
+        # print(drop_blocks)
 
         text_blocks = []
         for block in drop_blocks:
             text_blocks.append(block.xpath('./div//text()').extract())
 
-        drops_data = {'open_reward_campaigns': text_blocks[2], 'open_drop_campaigns': text_blocks[4],
-                      'closed_drop_campaigns': text_blocks[6]}
+        # drops_data = {'open_reward_campaigns': text_blocks[2], 'open_drop_campaigns': text_blocks[4],
+        #               'closed_drop_campaigns': text_blocks[6]}
+        # temporary exclude reward campaign from data processing
+        drops_data = {'open_drop_campaigns': text_blocks[self.open_campaign_index],
+                      'closed_drop_campaigns': text_blocks[self.closed_campaign_index]}
         processed_data = self.process_data(drops_data)
 
-        print(processed_data)
+        # print(processed_data)
 
         return processed_data
