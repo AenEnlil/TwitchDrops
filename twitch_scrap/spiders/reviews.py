@@ -1,6 +1,7 @@
 from time import sleep
 
 import scrapy
+from database.service import save_to_database, TableNamesMap
 from scrapy_selenium import SeleniumRequest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -36,9 +37,11 @@ class DropsSpider(scrapy.Spider):
     allowed_domains = ["twitch.tv", "www.google.com.ua"]
     open_campaign_index = 4
     closed_campaign_index = 6
-    drop_block_names = {'open_reward_campaigns': {'word_separator': 'Drops Inventory'},
-                        'open_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2},
-                        'closed_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2}}
+    data_extract_config = {'open_reward_campaigns': {'word_separator': 'Drops Inventory'},
+                           'open_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2},
+                           'closed_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2}}
+    block_additional_information = {'open_drop_campaigns': {'status': 'open'},
+                                    'closed_drop_campaigns': {'status': 'closed'}}
 
     def start_requests(self):
         url = "https://www.twitch.tv/drops/campaigns"
@@ -81,8 +84,10 @@ class DropsSpider(scrapy.Spider):
         # sleep(150)
         # print(response.body)
 
-    def extract_block_data(self, word_separator: str, data: list, index_increment: int = 1):
+    def extract_block_data(self, block_name: str, data: list):
         separated_data = []
+        word_separator = self.data_extract_config.get(block_name).get('word_separator')
+        index_increment = self.data_extract_config.get(block_name).get('index_increment', 1)
 
         while word_separator in data:
             word_index = data.index(word_separator)
@@ -95,22 +100,26 @@ class DropsSpider(scrapy.Spider):
                                                       'campaign_dates': data_list[2],
                                                       'campaign_name': data_list[3]}), separated_data))
 
-        return separated_data
+        updated_data = self.update_block_with_additional_info(block_name, separated_data)
+        return updated_data
+
+    def update_block_with_additional_info(self, block_name: str, data_block: list):
+        additional_information = self.block_additional_information.get(block_name)
+        updated_block = [{**item, **additional_information} for item in data_block]
+        return updated_block
 
     def process_data(self, unprocessed_data: dict):
         extracted_data = {}
         for block_name, data in unprocessed_data.items():
-            extracted_data.update({block_name: self.extract_block_data(data=data,
-                                                                       **self.drop_block_names.get(block_name, None))})
+            extracted_data.update({block_name: self.extract_block_data(data=data, block_name=block_name)})
+
         return extracted_data
 
+    def save_data(self, data_to_save: dict or list):
+        save_to_database(TableNamesMap.campaigns.value, data_to_save)
+
     def parse(self, response):
-        # print("\n")
-        # print("\n")
-        # print("\n")
-        # print("start scraping")
         drop_blocks = response.xpath("//div[@class='Layout-sc-1xcs6mc-0 jmLWIr drops-root__content']/div")
-        # print(drop_blocks)
 
         text_blocks = []
         for block in drop_blocks:
@@ -123,6 +132,7 @@ class DropsSpider(scrapy.Spider):
                       'closed_drop_campaigns': text_blocks[self.closed_campaign_index]}
         processed_data = self.process_data(drops_data)
 
-        # print(processed_data)
+        for data_block in processed_data.values():
+            self.save_data(data_block)
 
         return processed_data

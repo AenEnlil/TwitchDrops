@@ -84,11 +84,12 @@ class SeleniumMiddleware:
 
 
                 # Default variant with profile enabled
+                # version_main = current installed chrome version
 
                 options = undetected_chromedriver.ChromeOptions()
                 options.add_argument("--user-data-dir=/home/vladyslav/.config/google-chrome/")
                 options.add_argument("--profile-directory=Profile 2")
-                self.driver = undetected_chromedriver.Chrome(options=options,
+                self.driver = undetected_chromedriver.Chrome(options=options, version_main=126,
                                                              service=ChromeService(ChromeDriverManager().install()))
                 # self.driver.set_page_load_timeout(15)
 
