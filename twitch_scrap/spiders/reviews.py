@@ -42,6 +42,7 @@ class DropsSpider(scrapy.Spider):
                            'closed_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2}}
     block_additional_information = {'open_drop_campaigns': {'status': 'open'},
                                     'closed_drop_campaigns': {'status': 'closed'}}
+    excluded_words = {'company': ['Use', "Watch to Redeem"]}
 
     def start_requests(self):
         url = "https://www.twitch.tv/drops/campaigns"
@@ -85,6 +86,7 @@ class DropsSpider(scrapy.Spider):
         # print(response.body)
 
     def extract_block_data(self, block_name: str, data: list):
+        # TODO: fix bug - while extracting data if game contains more than one campaign next game will be skipped
         separated_data = []
         word_separator = self.data_extract_config.get(block_name).get('word_separator')
         index_increment = self.data_extract_config.get(block_name).get('index_increment', 1)
@@ -100,8 +102,20 @@ class DropsSpider(scrapy.Spider):
                                                       'campaign_dates': data_list[2],
                                                       'campaign_name': data_list[3]}), separated_data))
 
-        updated_data = self.update_block_with_additional_info(block_name, separated_data)
+        cleaned_data = list(filter(self.excluded_words_filter, separated_data))
+        updated_data = self.update_block_with_additional_info(block_name, cleaned_data)
         return updated_data
+
+    def excluded_words_filter(self, data: dict):
+        excluded_words = self.excluded_words
+
+        flag = True
+
+        for key in excluded_words:
+            if data.get(key).strip() in excluded_words.get(key):
+                flag = False
+
+        return flag
 
     def update_block_with_additional_info(self, block_name: str, data_block: list):
         additional_information = self.block_additional_information.get(block_name)
