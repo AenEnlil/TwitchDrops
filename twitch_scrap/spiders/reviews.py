@@ -2,6 +2,7 @@ from time import sleep
 
 import scrapy
 from database.service import save_to_database, TableNamesMap
+from datetime import datetime
 from scrapy_selenium import SeleniumRequest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -35,8 +36,7 @@ class ReviewsSpider(scrapy.Spider):
 class DropsSpider(scrapy.Spider):
     name = "drops"
     allowed_domains = ["twitch.tv", "www.google.com.ua"]
-    open_campaign_index = 4
-    closed_campaign_index = 6
+    open_campaigns_index, closed_campaign_index = None, None
     data_extract_config = {'open_reward_campaigns': {'word_separator': 'Drops Inventory'},
                            'open_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2},
                            'closed_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2}}
@@ -47,6 +47,12 @@ class DropsSpider(scrapy.Spider):
     def start_requests(self):
         url = "https://www.twitch.tv/drops/campaigns"
         yield SeleniumRequest(url=url, callback=self.parse)
+
+    def set_campaigns_index(self, text_blocks):
+        # TODO: add reward campaigns
+        for index, text in enumerate(text_blocks):
+            if 'Open Drop Campaigns' in text:
+                self.open_campaigns_index = index+1
 
     def login(self):
         pass
@@ -85,6 +91,21 @@ class DropsSpider(scrapy.Spider):
         # sleep(150)
         # print(response.body)
 
+    def split_campaign_dates(self, data_item: dict):
+        # TODO: add year
+        campaign_dates = data_item.pop('campaign_dates')
+        gmt_index = campaign_dates.find('GMT')
+
+        string_without_gmt = campaign_dates[:gmt_index]
+        split_string = string_without_gmt.split('-')
+
+        start_date = datetime.strptime(split_string[0].strip(), '%a, %b %d, %I:%M %p')
+        end_date = datetime.strptime(split_string[1].strip(), '%a, %b %d, %I:%M %p')
+
+        data_item.update({'start_date': start_date, 'end_date': end_date})
+
+        return data_item
+
     def extract_block_data(self, block_name: str, data: list):
         # TODO: fix bug - while extracting data if game contains more than one campaign next game will be skipped
         separated_data = []
@@ -101,6 +122,7 @@ class DropsSpider(scrapy.Spider):
         separated_data = list(map(lambda data_list: ({'game': data_list[0], 'company': data_list[1],
                                                       'campaign_dates': data_list[2],
                                                       'campaign_name': data_list[3]}), separated_data))
+        separated_data = list(map(self.split_campaign_dates, separated_data))
 
         cleaned_data = list(filter(self.excluded_words_filter, separated_data))
         updated_data = self.update_block_with_additional_info(block_name, cleaned_data)
@@ -129,7 +151,7 @@ class DropsSpider(scrapy.Spider):
 
         return extracted_data
 
-    def save_data(self, data_to_save: dict or list):
+    def save_data(self, data_to_save: list):
         save_to_database(TableNamesMap.campaigns.value, data_to_save)
 
     def parse(self, response):
@@ -139,11 +161,11 @@ class DropsSpider(scrapy.Spider):
         for block in drop_blocks:
             text_blocks.append(block.xpath('./div//text()').extract())
 
-        # drops_data = {'open_reward_campaigns': text_blocks[2], 'open_drop_campaigns': text_blocks[4],
-        #               'closed_drop_campaigns': text_blocks[6]}
-        # temporary exclude reward campaign from data processing
-        drops_data = {'open_drop_campaigns': text_blocks[self.open_campaign_index],
-                      'closed_drop_campaigns': text_blocks[self.closed_campaign_index]}
+        self.set_campaigns_index(text_blocks)
+        # drops_data = {'open_reward_campaigns': text_blocks[2], 'open_drop_campaigns': text_blocks[self.open_campaign_index],
+        #               'closed_drop_campaigns': text_blocks[self.closed_campaign_index]}
+        # reward and closed campaigns are temporary excluded from data processing
+        drops_data = {'open_drop_campaigns': text_blocks[self.open_campaigns_index]}
         processed_data = self.process_data(drops_data)
 
         for data_block in processed_data.values():

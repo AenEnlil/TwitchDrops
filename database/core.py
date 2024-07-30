@@ -2,7 +2,7 @@ import sqlite3
 from enum import Enum
 from typing import Literal
 
-from sqlalchemy import create_engine, text, String, CheckConstraint
+from sqlalchemy import create_engine, text, String, CheckConstraint, DateTime
 from sqlalchemy.orm import Session, declarative_base, mapped_column, Mapped, validates
 
 Base = declarative_base()
@@ -22,9 +22,10 @@ class Campaigns(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     game: Mapped[str] = mapped_column(String(60))
     company: Mapped[str] = mapped_column(String(60))
-    campaign_dates: Mapped[str] = mapped_column(String(120))
     campaign_name: Mapped[str] = mapped_column(String(60))
     status: Mapped[str] = mapped_column(String(10), CheckConstraint(status_validation))
+    start_date: Mapped[str] = mapped_column(DateTime)
+    end_date: Mapped[str] = mapped_column(DateTime)
 
 
 Base.metadata.create_all(engine)
