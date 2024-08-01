@@ -122,9 +122,9 @@ class DropsSpider(scrapy.Spider):
         separated_data = list(map(lambda data_list: ({'game': data_list[0], 'company': data_list[1],
                                                       'campaign_dates': data_list[2],
                                                       'campaign_name': data_list[3]}), separated_data))
-        separated_data = list(map(self.split_campaign_dates, separated_data))
-
         cleaned_data = list(filter(self.excluded_words_filter, separated_data))
+        cleaned_data = list(map(self.split_campaign_dates, cleaned_data))
+
         updated_data = self.update_block_with_additional_info(block_name, cleaned_data)
         return updated_data
 
@@ -152,7 +152,7 @@ class DropsSpider(scrapy.Spider):
         return extracted_data
 
     def save_data(self, data_to_save: list):
-        save_to_database(TableNamesMap.campaigns.value, data_to_save)
+        save_to_database(TableNamesMap.campaigns.value, data_to_save, exclude_duplicates=True)
 
     def parse(self, response):
         drop_blocks = response.xpath("//div[@class='Layout-sc-1xcs6mc-0 jmLWIr drops-root__content']/div")
