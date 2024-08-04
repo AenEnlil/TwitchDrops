@@ -1,8 +1,8 @@
 import sqlite3
 from enum import Enum
-from typing import Literal
+from typing import Literal, List
 
-from sqlalchemy import create_engine, text, String, CheckConstraint, DateTime
+from sqlalchemy import create_engine, text, String, CheckConstraint, DateTime, BigInteger, PickleType
 from sqlalchemy.orm import Session, declarative_base, mapped_column, Mapped, validates
 
 Base = declarative_base()
@@ -26,6 +26,14 @@ class Campaigns(Base):
     status: Mapped[str] = mapped_column(String(10), CheckConstraint(status_validation))
     start_date: Mapped[str] = mapped_column(DateTime)
     end_date: Mapped[str] = mapped_column(DateTime)
+
+
+class Users(Base):
+
+    __tablename__ = "users"
+
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    subscribed_games: Mapped[List] = mapped_column(PickleType(), default=[])
 
 
 Base.metadata.create_all(engine)

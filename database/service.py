@@ -2,11 +2,12 @@ from enum import Enum
 from datetime import datetime
 from sqlalchemy import text, select
 
-from database.core import session, engine, Campaigns
+from database.core import session, engine, Campaigns, Users
 
 
 class TableNamesMap(Enum):
     campaigns = Campaigns
+    users = Users
 
 
 duplicate_filter_columns_selector = {
@@ -115,7 +116,26 @@ def get_all_open_campaigns():
     campaigns = [item._asdict() for item in query_result]
     return campaigns
 
+
+def get_campaigns_by_game(games: list):
+    statement = select(Campaigns.campaign_name, Campaigns.game,
+                       Campaigns.start_date, Campaigns.end_date).filter(Campaigns.game.in_(games))
+    query_result = session.execute(statement).all()
+
+    campaigns = [item._asdict() for item in query_result]
+    return campaigns
+
 # save_to_database(TableNamesMap.campaigns.value, test_data, exclude_duplicates=True)
-# get_all_open_campaigns()
+# print(get_all_open_campaigns())
+# print(get_campaigns_by_game(['Wakfu', 'GFd']))
 # remove_duplicates(TableNamesMap.campaigns.value, test_data)
 
+# d = {'used_id': 15345, 'subscribed_games': ['Wakfu', 'ASd']}
+# print(Users(user_id=35645, subscribed_games=['Wakfu', 'ASd']))
+# session.add(Users(user_id=35645, subscribed_games=['Wakfu', 'ASd']))
+# session.commit()
+
+# statement = select(Users.user_id, Users.subscribed_games)
+# query_result = session.execute(statement).all()
+# campaigns = [item._asdict() for item in query_result]
+# print(campaigns)
