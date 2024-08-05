@@ -2,6 +2,15 @@ from numpy import array_split
 message_template = 'Game: {game}, Campaign: {campaign_name}, start_date: {start_date}, end_date: {end_date}'
 
 
+def process_subscribe_games_data(games: str):
+    stripped_data = []
+    if games:
+        data = games.split(',')
+        stripped_data = list(map(lambda item: ({'game': item.strip()}), data))
+
+    return stripped_data
+
+
 def format_data(data: list):
     formatted_data = []
 
