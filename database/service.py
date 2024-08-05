@@ -125,6 +125,17 @@ def get_campaigns_by_game(games: list):
     campaigns = [item._asdict() for item in query_result]
     return campaigns
 
+
+def get_user_subscribed_games(user_id: int):
+    statement = select(Users.subscribed_games).filter_by(user_id=user_id)
+    query_result = session.scalars(statement).all()
+    return query_result[0] if query_result else query_result
+
+
+def update_user_subscribed_games(user_id: int, subscribed_games: list):
+    session.query(Users).filter_by(user_id=user_id).update({"subscribed_games": subscribed_games})
+    session.commit()
+
 # save_to_database(TableNamesMap.campaigns.value, test_data, exclude_duplicates=True)
 # print(get_all_open_campaigns())
 # print(get_campaigns_by_game(['Wakfu', 'GFd']))
@@ -139,3 +150,10 @@ def get_campaigns_by_game(games: list):
 # query_result = session.execute(statement).all()
 # campaigns = [item._asdict() for item in query_result]
 # print(campaigns)
+
+# d = get_user_subscribed_games(35645)
+# print(d)
+# print(get_campaigns_by_game(d))
+# print(get_user_subscribed_games(35645))
+# update_user_subscribed_games(35645, ['a', 'b'])
+# print(get_user_subscribed_games(35645))

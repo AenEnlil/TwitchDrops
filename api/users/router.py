@@ -4,8 +4,8 @@ from starlette import status
 from starlette.responses import JSONResponse
 
 from .exceptions import UserAlreadyExistException
-from .schemas import UserCreateSchema
-from .service import create_user_in_db
+from .schemas import UserCreateSchema, UserGamesSubscribeSchema
+from .service import create_user_in_db, subscribe_to_games
 from ..messages import NOT_FOUND, USER_ALREADY_EXIST
 
 router = APIRouter(
@@ -24,3 +24,10 @@ async def create_user(user: UserCreateSchema):
     except UserAlreadyExistException:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=USER_ALREADY_EXIST)
+
+
+@router.post('/{user_id}/subscribe_to_games', status_code=status.HTTP_200_OK, name='users:game_subscribe')
+async def subscribe(user_id: int, games: UserGamesSubscribeSchema):
+    subscribe_to_games(user_id, games.model_dump().get('games'))
+    return JSONResponse(status_code=status.HTTP_200_OK,
+                        content=jsonable_encoder({'result': 'successfully subscribed'}))
