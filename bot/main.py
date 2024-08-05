@@ -1,14 +1,18 @@
 import asyncio
 import logging
+import os
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from dotenv import load_dotenv
 
 from handlers import router
 
+load_dotenv()
+
 
 async def main():
-    bot = Bot(token='7044229020:AAFPU9NVkRKrmdLA-nEPULjghJ3Ea1BRwHE')
+    bot = Bot(token=os.getenv('bot_token'))
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
     await bot.delete_webhook(drop_pending_updates=True)
