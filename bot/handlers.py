@@ -1,6 +1,7 @@
 import os
 
 from aiogram import Router, F
+from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandObject
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
@@ -47,7 +48,7 @@ async def get_all_drop_campaigns(callback: CallbackQuery):
 
     try:
         for message in messages:
-            await bot.send_message(chat_id=chat_id, text=message)
+            await bot.send_message(chat_id=chat_id, text=message, parse_mode=ParseMode.HTML)
     except TelegramBadRequest as e:
         await bot.send_message(chat_id=chat_id, text=f'Error: {e.message}', reply_markup=menu)
     await callback.answer()
@@ -64,7 +65,7 @@ async def filter_drop_campaigns_by_subscribed_games(callback: CallbackQuery):
 
     try:
         for message in messages:
-            await bot.send_message(chat_id=chat_id, text=message)
+            await bot.send_message(chat_id=chat_id, text=message, parse_mode=ParseMode.HTML)
     except TelegramBadRequest as e:
         await bot.send_message(chat_id=chat_id, text=f'Error: {e.message}', reply_markup=menu)
     await callback.answer()

@@ -1,5 +1,6 @@
 from numpy import array_split
-message_template = 'Game: {game}, Campaign: {campaign_name}, start_date: {start_date}, end_date: {end_date}'
+
+from text import game_response_template
 
 
 def process_subscribe_games_data(games: str):
@@ -15,7 +16,7 @@ def format_data(data: list):
     formatted_data = []
 
     for item in data:
-        formatted_data.append(message_template.format(**item))
+        formatted_data.append(game_response_template.format(**item))
 
     return formatted_data
 
