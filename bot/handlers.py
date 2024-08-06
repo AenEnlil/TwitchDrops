@@ -28,6 +28,7 @@ async def get_menu(msg: Message):
 
 @router.message(Command("subscribe"))
 async def game_subscribe(msg: Message, command: CommandObject):
+    # TODO: add check if no game
     user_id = msg.from_user.id
     data = process_subscribe_games_data(command.args)
     result = post(f"http://{os.getenv('hostname')}/users/{user_id}/subscribe_to_games",
@@ -75,5 +76,5 @@ async def filter_drop_campaigns_by_subscribed_games(callback: CallbackQuery):
 async def get_help(callback: CallbackQuery):
     bot = callback.bot
     chat_id = callback.message.chat.id
-    await bot.send_message(chat_id=chat_id, text=help_text)
+    await bot.send_message(chat_id=chat_id, text=help_text, parse_mode=ParseMode.HTML)
     await callback.answer()
