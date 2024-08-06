@@ -12,6 +12,7 @@ load_dotenv()
 
 
 async def main():
+    # TODO: add logging errors to file through all project
     bot = Bot(token=os.getenv('bot_token'))
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)

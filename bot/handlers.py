@@ -28,13 +28,16 @@ async def get_menu(msg: Message):
 
 @router.message(Command("subscribe"))
 async def game_subscribe(msg: Message, command: CommandObject):
-    # TODO: add check if no game
     user_id = msg.from_user.id
-    data = process_subscribe_games_data(command.args)
+    games = command.args
+    if not games:
+        return await msg.answer(error_text.format(error='game not entered'), reply_markup=menu)
+
+    data = process_subscribe_games_data(games)
     result = post(f"http://{os.getenv('hostname')}/users/{user_id}/subscribe_to_games",
                   data=dumps({'games': data}))
     if result.status_code == 200:
-        answer_text = subscribed_successfully_text.format(games=data)
+        answer_text = subscribed_successfully_text.format(games=games)
         await msg.answer(answer_text, reply_markup=menu)
     else:
         await msg.answer(error_text, reply_markup=menu)

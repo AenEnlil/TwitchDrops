@@ -13,5 +13,5 @@ game_response_template = '<b>Game</b>: {game} \n' \
                          '<b>end_date</b>: {end_date} \n'
 
 
-error_text = 'Oops. error))'
+error_text = 'Error: {error}'
 
