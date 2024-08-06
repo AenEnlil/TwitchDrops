@@ -28,7 +28,7 @@ def prepare_data_for_creating_response_message(data: list):
     prepared_data = []
 
     if formatted_data_length > list_length_limit:
-        number_of_splits = formatted_data_length // list_length_limit
+        number_of_splits = round(formatted_data_length / list_length_limit)
         prepared_data = list(array_split(formatted_data, number_of_splits))
     else:
         prepared_data.append(formatted_data)

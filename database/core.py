@@ -6,9 +6,9 @@ from sqlalchemy import create_engine, text, String, CheckConstraint, DateTime, B
 from sqlalchemy.orm import Session, declarative_base, mapped_column, Mapped, validates
 
 Base = declarative_base()
-# engine = create_engine("sqlite:///database/drops.db") #prod
+engine = create_engine("sqlite:///database/drops.db") # prod
 
-engine = create_engine("sqlite:///drops.db")
+# engine = create_engine("sqlite:///drops.db")
 
 print('exec core')
 
