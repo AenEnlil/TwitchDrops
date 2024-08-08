@@ -10,7 +10,8 @@ subscribed_successfully_text = "successfully subscribed for {games} drop campaig
 game_response_template = '<b>Game</b>: {game} \n' \
                          '<b>Campaign</b>: {campaign_name} \n' \
                          '<b>start_date</b>: {start_date} \n' \
-                         '<b>end_date</b>: {end_date} \n'
+                         '<b>end_date</b>: {end_date} \n' \
+                         '<b>Rewards</b>: {rewards} \n'
 
 
 error_text = 'Error: {error}'

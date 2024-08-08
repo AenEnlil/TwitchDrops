@@ -22,7 +22,7 @@ def format_data(data: list):
 
 
 def prepare_data_for_creating_response_message(data: list):
-    list_length_limit = 20
+    list_length_limit = 10
     formatted_data = format_data(data)
     formatted_data_length = len(formatted_data)
     prepared_data = []
