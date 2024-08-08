@@ -5,33 +5,6 @@ from database.core import db_session
 from database.service import save_to_database, TableNamesMap
 from datetime import datetime
 from scrapy_selenium import SeleniumRequest
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-
-
-class ReviewsSpider(scrapy.Spider):
-    name = "reviews"
-    allowed_domains = ["web-scraping.dev"]
-    # start_urls = ["https://web-scraping.dev"]
-
-    def start_requests(self):
-        url = "https://web-scraping.dev/testimonials"
-        yield SeleniumRequest(url=url, callback=self.parse)
-
-    def parse(self, response):
-        # with open('screenshot.png', 'wb') as image:
-        #     image.write(response.meta['screenshot'])
-
-        # driver = response.request.meta["driver"]
-        # # adjust the ChromeDriver viewport
-        # driver.set_window_size(1920, 1080)
-        # driver.save_screenshot("screenshot.png")
-        reviews = response.css("div.testimonial")
-        for review in reviews:
-            yield {
-                "rate": len(review.css("span.rating > svg").getall()),
-                "text": review.css("p.text::text").get()
-            }
 
 
 class DropsSpider(scrapy.Spider):
@@ -93,17 +66,22 @@ class DropsSpider(scrapy.Spider):
         # print(response.body)
 
     def split_campaign_dates(self, data_item: dict):
-        # TODO: add year
         campaign_dates = data_item.pop('campaign_dates')
         gmt_index = campaign_dates.find('GMT')
+        current_year = datetime.now().year
 
         string_without_gmt = campaign_dates[:gmt_index]
         split_string = string_without_gmt.split('-')
 
         start_date = datetime.strptime(split_string[0].strip(), '%a, %b %d, %I:%M %p')
-        end_date = datetime.strptime(split_string[1].strip(), '%a, %b %d, %I:%M %p')
+        final_start_date = start_date.replace(year=current_year)
 
-        data_item.update({'start_date': start_date, 'end_date': end_date})
+        end_date = datetime.strptime(split_string[1].strip(), '%a, %b %d, %I:%M %p')
+        if start_date.month > end_date.month:
+            current_year += 1
+        final_end_date = end_date.replace(year=current_year)
+
+        data_item.update({'start_date': final_start_date, 'end_date': final_end_date})
 
         return data_item
 
