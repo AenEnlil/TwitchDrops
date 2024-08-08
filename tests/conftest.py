@@ -2,33 +2,9 @@ from datetime import datetime
 from typing import List
 
 import pytest
-from sqlalchemy import create_engine, String, CheckConstraint, DateTime, BigInteger, PickleType, select
-from sqlalchemy.orm import Session, declarative_base, Mapped, mapped_column
-
-Base = declarative_base()
-
-status_validation = "status == 'open' or status == 'closed'"
-
-
-class Campaigns(Base):
-
-    __tablename__ = "campaigns"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    game: Mapped[str] = mapped_column(String(60))
-    company: Mapped[str] = mapped_column(String(60))
-    campaign_name: Mapped[str] = mapped_column(String(60))
-    status: Mapped[str] = mapped_column(String(10), CheckConstraint(status_validation))
-    start_date: Mapped[str] = mapped_column(DateTime)
-    end_date: Mapped[str] = mapped_column(DateTime)
-
-
-class Users(Base):
-
-    __tablename__ = "users"
-
-    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
-    subscribed_games: Mapped[List] = mapped_column(PickleType(), default=[])
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from database.tables import Base, Users, Campaigns
 
 
 test_user = {
