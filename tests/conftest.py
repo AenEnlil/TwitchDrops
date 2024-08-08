@@ -18,7 +18,8 @@ test_campaigns = [{
         "campaign_name": "Summary",
         "status": "open",
         'start_date': datetime.strptime('Tue, Jul 2, 11:00 AM', '%a, %b %d, %I:%M %p'),
-        'end_date': datetime.strptime('Mon, Jul 29, 11:00 AM', '%a, %b %d, %I:%M %p')
+        'end_date': datetime.strptime('Mon, Jul 29, 11:00 AM', '%a, %b %d, %I:%M %p'),
+        'rewards': ['Reward1']
 },
     {
         "game": "Rise Online",
@@ -26,7 +27,8 @@ test_campaigns = [{
         "campaign_name": "ROW - Twitch Drop 114",
         'start_date': datetime.strptime('Tue, Jul 31, 1:00 PM', '%a, %b %d, %I:%M %p'),
         'end_date': datetime.strptime('Tue, Aug 23, 11:58 AM', '%a, %b %d, %I:%M %p'),
-        "status": "open"
+        "status": "open",
+        'rewards': ['Reward1', 'Reward2']
     }]
 
 

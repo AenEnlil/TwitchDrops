@@ -16,7 +16,8 @@ campaigns_with_valid_data = [{
         "campaign_name": "Viewer Box Necroworld J6",
         'start_date': datetime.strptime('Tue, Jul 31, 1:00 PM', '%a, %b %d, %I:%M %p'),
         'end_date': datetime.strptime('Tue, Aug 23, 11:58 AM', '%a, %b %d, %I:%M %p'),
-        "status": "open"
+        "status": "open",
+        'rewards': ['Reward1']
     },
     {
         "game": "World of Tanks Console",
@@ -24,7 +25,8 @@ campaigns_with_valid_data = [{
         "campaign_name": "Patriots Season Week 9",
         "status": 'closed',
         'start_date': datetime.strptime('Tue, Jul 16, 1:00 PM', '%a, %b %d, %I:%M %p'),
-        'end_date': datetime.strptime('Tue, Jul 23, 11:58 AM', '%a, %b %d, %I:%M %p')
+        'end_date': datetime.strptime('Tue, Jul 23, 11:58 AM', '%a, %b %d, %I:%M %p'),
+        'rewards': ['Reward1', 'Reward2', 'Reward3']
     }]
 
 
@@ -77,7 +79,7 @@ def test_get_all_open_campaigns(database_session):
 
 def test_get_campaigns_by_games(database_session):
     statement = select(Campaigns.campaign_name, Campaigns.game,
-                       Campaigns.start_date, Campaigns.end_date).filter_by(status='open')
+                       Campaigns.start_date, Campaigns.end_date, Campaigns.rewards).filter_by(status='open')
     query_result = database_session.execute(statement).all()
     existing_campaigns = [item._asdict() for item in query_result]
     assert existing_campaigns
