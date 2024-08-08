@@ -1,6 +1,7 @@
 from time import sleep
 
 import scrapy
+from database.core import db_session
 from database.service import save_to_database, TableNamesMap
 from datetime import datetime
 from scrapy_selenium import SeleniumRequest
@@ -152,7 +153,7 @@ class DropsSpider(scrapy.Spider):
         return extracted_data
 
     def save_data(self, data_to_save: list):
-        save_to_database(TableNamesMap.campaigns.value, data_to_save, exclude_duplicates=True)
+        save_to_database(db_session, TableNamesMap.campaigns.value, data_to_save, exclude_duplicates=True)
 
     def parse(self, response):
         drop_blocks = response.xpath("//div[@class='Layout-sc-1xcs6mc-0 jmLWIr drops-root__content']/div")

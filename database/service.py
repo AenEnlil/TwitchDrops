@@ -2,7 +2,10 @@ from enum import Enum
 from datetime import datetime
 from sqlalchemy import text, select
 
-from database.core import session, engine, Campaigns, Users
+from database.tables import Campaigns, Users
+from database.exceptions import DuplicateFilterError
+
+# TODO: for methods that accept tablename add check if given tablename exist
 
 
 class TableNamesMap(Enum):
@@ -12,7 +15,7 @@ class TableNamesMap(Enum):
 
 duplicate_filter_columns_selector = {
         TableNamesMap.campaigns.value: [Campaigns.campaign_name, Campaigns.game,
-                                        Campaigns.start_date, Campaigns.end_date]
+                                        Campaigns.start_date, Campaigns.end_date],
 }
 
 
@@ -67,12 +70,22 @@ test_data = [{
 
 
 def prepare_data_to_save(tablename, data: list) -> list:
+    """
+    Converts every dict item in data list to tablename instance
+
+    :param tablename: Table class which will be used to create instances of it
+    :param data: list of data that will be converted to Table instances
+    :return: list of Table instances that represents rows of Table
+    """
     data_ready_to_save = [tablename(**item) for item in data]
     return data_ready_to_save
 
 
-def remove_duplicates(tablename, data: list) -> list:
+def remove_duplicates(session, tablename, data: list) -> list:
     columns = duplicate_filter_columns_selector.get(tablename)
+    if not columns:
+        raise DuplicateFilterError
+
     columns_as_keys = [column.key for column in columns]
     statement = select(*columns).filter_by(status='open')
 
@@ -88,21 +101,19 @@ def remove_duplicates(tablename, data: list) -> list:
     return data_without_duplicates
 
 
-def save_to_database(tablename, data, exclude_duplicates=False):
+def save_to_database(session, tablename, data, exclude_duplicates=False):
     # TODO: maybe move duplicates handling to scrap part
-    print(engine.pool.status())
 
     if exclude_duplicates:
-        data = remove_duplicates(tablename, data)
+        data = remove_duplicates(session, tablename, data)
 
     prepared_data = prepare_data_to_save(tablename, data)
 
     session.add_all(prepared_data)
     session.commit()
-    print(engine.pool.status())
 
 
-def get_all_open_campaigns():
+def get_all_open_campaigns(session):
     """ doc """
     '''
         _asdict method and _mapping property only work for Row objects from session execute with
@@ -117,7 +128,7 @@ def get_all_open_campaigns():
     return campaigns
 
 
-def get_campaigns_by_game(games: list):
+def get_campaigns_by_game(session, games: list):
     statement = select(Campaigns.campaign_name, Campaigns.game,
                        Campaigns.start_date, Campaigns.end_date).filter(Campaigns.game.in_(games))
     query_result = session.execute(statement).all()
@@ -126,13 +137,13 @@ def get_campaigns_by_game(games: list):
     return campaigns
 
 
-def get_user_subscribed_games(user_id: int):
+def get_user_subscribed_games(session, user_id: int):
     statement = select(Users.subscribed_games).filter_by(user_id=user_id)
     query_result = session.scalars(statement).all()
     return query_result[0] if query_result else query_result
 
 
-def update_user_subscribed_games(user_id: int, subscribed_games: list):
+def update_user_subscribed_games(session, user_id: int, subscribed_games: list):
     session.query(Users).filter_by(user_id=user_id).update({"subscribed_games": subscribed_games})
     session.commit()
 

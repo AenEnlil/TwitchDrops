@@ -10,5 +10,5 @@ print('exec core')
 
 Base.metadata.create_all(engine)
 
-session = Session(engine)
+db_session = Session(engine)
 
