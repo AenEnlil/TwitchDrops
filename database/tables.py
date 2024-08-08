@@ -19,6 +19,7 @@ class Campaigns(Base):
     status: Mapped[str] = mapped_column(String(10), CheckConstraint(status_validation))
     start_date: Mapped[str] = mapped_column(DateTime)
     end_date: Mapped[str] = mapped_column(DateTime)
+    rewards: Mapped[List] = mapped_column(PickleType(), default=[])
 
 
 class Users(Base):

@@ -85,6 +85,18 @@ class DropsSpider(scrapy.Spider):
 
         return data_item
 
+
+    def extract_game_data(self, data: list):
+        game_data = []
+
+        for game in data:
+            extracted_data = []
+            extracted_data.extend(game[0:4])
+            reward_block_start_index, reward_block_end_index = game.index('Rewards'), game.index('How to Earn the Drop')
+            extracted_data.extend(game[reward_block_start_index+1:reward_block_end_index])
+            game_data.append(extracted_data)
+        return game_data
+
     def extract_block_data(self, block_name: str, data: list):
         # TODO: fix bug - while extracting data if game contains more than one campaign next game will be skipped
         separated_data = []
@@ -96,11 +108,11 @@ class DropsSpider(scrapy.Spider):
             separated_data.append(data[0:word_index + index_increment])
             data = [value for index, value in enumerate(data) if index not in range(0, word_index + index_increment)]
 
-        separated_data = [value[0:4] for value in separated_data]
+        separated_data = self.extract_game_data(separated_data)
 
         separated_data = list(map(lambda data_list: ({'game': data_list[0], 'company': data_list[1],
-                                                      'campaign_dates': data_list[2],
-                                                      'campaign_name': data_list[3]}), separated_data))
+                                                      'campaign_dates': data_list[2], 'campaign_name': data_list[3],
+                                                      'rewards': data_list[4:]}), separated_data))
         cleaned_data = list(filter(self.excluded_words_filter, separated_data))
         cleaned_data = list(map(self.split_campaign_dates, cleaned_data))
 
