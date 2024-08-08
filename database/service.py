@@ -121,7 +121,7 @@ def get_all_open_campaigns(session):
         __dict__ works for Table object (in Row objects)
     '''
     statement = select(Campaigns.campaign_name, Campaigns.game,
-                       Campaigns.start_date, Campaigns.end_date).filter_by(status='open')
+                       Campaigns.start_date, Campaigns.end_date, Campaigns.rewards).filter_by(status='open')
     query_result = session.execute(statement).all()
 
     campaigns = [item._asdict() for item in query_result]
@@ -130,7 +130,7 @@ def get_all_open_campaigns(session):
 
 def get_campaigns_by_game(session, games: list):
     statement = select(Campaigns.campaign_name, Campaigns.game,
-                       Campaigns.start_date, Campaigns.end_date).filter(Campaigns.game.in_(games))
+                       Campaigns.start_date, Campaigns.end_date, Campaigns.rewards).filter(Campaigns.game.in_(games))
     query_result = session.execute(statement).all()
 
     campaigns = [item._asdict() for item in query_result]

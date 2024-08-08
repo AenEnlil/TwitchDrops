@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import List
+
 from pydantic import BaseModel, field_serializer
 
 
@@ -7,6 +9,7 @@ class CampaignResponseSchema(BaseModel):
     game: str
     start_date: datetime
     end_date: datetime
+    rewards: List[str]
 
     @field_serializer('start_date', 'end_date')
     def serialize_datetime(self, dt: datetime, _info):
