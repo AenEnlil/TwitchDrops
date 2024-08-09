@@ -1,13 +1,12 @@
 from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from starlette import status
-from starlette.responses import JSONResponse
 
+from .exceptions import NoSubscribedGamesExceptions
 from .service import get_all_campaigns, get_subscribed_campaigns
 from .schemas import CampaignResponseSchema
-from ..messages import NOT_FOUND
-
+from ..messages import NOT_FOUND, NO_SUBSCRIBED_GAMES
 
 router = APIRouter(
     prefix='/campaigns',
@@ -26,5 +25,9 @@ async def get_all_drop_campaigns():
 @router.get('/subscribed', status_code=status.HTTP_200_OK, name='campaigns:subscribed',
             response_model=List[CampaignResponseSchema])
 async def get_campaigns_by_subscribed_games(user_id: int):
-    campaigns = get_subscribed_campaigns(user_id)
-    return campaigns
+    try:
+        campaigns = get_subscribed_campaigns(user_id)
+        return campaigns
+    except NoSubscribedGamesExceptions:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=NO_SUBSCRIBED_GAMES)

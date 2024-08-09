@@ -10,7 +10,8 @@ from json import dumps
 
 from utils import form_response_message, process_subscribe_games_data
 from keyboard import menu
-from text import greet, menu_text, help_text, error_text, subscribed_successfully_text
+from text import greet, menu_text, help_text, error_text, subscribed_successfully_text, \
+    no_campaigns_for_subscribed_games_text
 
 router = Router()
 
@@ -64,8 +65,17 @@ async def filter_drop_campaigns_by_subscribed_games(callback: CallbackQuery):
     bot = callback.bot
     chat_id = callback.message.chat.id
     user_id = callback.from_user.id
-    result = get(f"http://{os.getenv('hostname')}/campaigns/subscribed?user_id={user_id}").json()
-    messages = form_response_message(result)
+    result = get(f"http://{os.getenv('hostname')}/campaigns/subscribed?user_id={user_id}")
+    json = result.json()
+
+    if result.status_code == 400:
+        await bot.send_message(chat_id=chat_id, text=f"Error: {result.json().get('detail')}", reply_markup=menu)
+        return await callback.answer()
+    elif not json:
+        await bot.send_message(chat_id=chat_id, text=no_campaigns_for_subscribed_games_text, reply_markup=menu)
+        return await callback.answer()
+    # campaigns = result.json()
+    messages = form_response_message(json)
 
     try:
         for message in messages:

@@ -7,6 +7,8 @@ help_text = "/menu - get menu \n" \
             "exactly as it named on twitch"
 subscribed_successfully_text = "successfully subscribed for {games} drop campaigns"
 
+
+no_campaigns_for_subscribed_games_text = "there is no running drops campaigns for your subscribed games right now"
 game_response_template = '<b>Game</b>: {game} \n' \
                          '<b>Campaign</b>: {campaign_name} \n' \
                          '<b>start_date</b>: {start_date} \n' \
