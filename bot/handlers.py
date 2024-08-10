@@ -61,7 +61,6 @@ async def get_all_drop_campaigns(callback: CallbackQuery):
 
 @router.callback_query(F.data == "get_subscribed_games_campaigns")
 async def filter_drop_campaigns_by_subscribed_games(callback: CallbackQuery):
-    # TODO: add message if currently no campaigns
     bot = callback.bot
     chat_id = callback.message.chat.id
     user_id = callback.from_user.id
@@ -74,7 +73,7 @@ async def filter_drop_campaigns_by_subscribed_games(callback: CallbackQuery):
     elif not json:
         await bot.send_message(chat_id=chat_id, text=no_campaigns_for_subscribed_games_text, reply_markup=menu)
         return await callback.answer()
-    # campaigns = result.json()
+
     messages = form_response_message(json)
 
     try:

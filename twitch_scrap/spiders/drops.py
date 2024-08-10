@@ -2,7 +2,7 @@ from time import sleep
 
 import scrapy
 from database.core import db_session
-from database.service import save_to_database, TableNamesMap
+from database.service import save_to_database, TableNamesMap, close_ended_campaigns, delete_ended_campaigns
 from datetime import datetime
 from scrapy_selenium import SeleniumRequest
 
@@ -162,4 +162,6 @@ class DropsSpider(scrapy.Spider):
         for data_block in processed_data.values():
             self.save_data(data_block)
 
+        close_ended_campaigns(db_session)
+        delete_ended_campaigns(db_session)
         return processed_data
