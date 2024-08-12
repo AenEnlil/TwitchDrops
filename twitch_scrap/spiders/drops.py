@@ -10,7 +10,7 @@ from scrapy_selenium import SeleniumRequest
 
 class DropsSpider(scrapy.Spider):
     name = "drops"
-    allowed_domains = ["twitch.tv", "www.google.com.ua"]
+    allowed_domains = ["twitch.tv"]
     open_campaigns_index, closed_campaign_index = None, None
     data_extract_config = {'open_reward_campaigns': {'word_separator': 'Drops Inventory'},
                            'open_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2,

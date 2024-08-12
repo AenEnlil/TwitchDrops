@@ -1,4 +1,5 @@
 """This module contains the ``SeleniumMiddleware`` scrapy middleware"""
+import os
 import time
 from importlib import import_module
 
@@ -9,6 +10,10 @@ from scrapy.http import HtmlResponse
 from selenium.webdriver.support.ui import WebDriverWait
 
 from scrapy_selenium.http import SeleniumRequest
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class SeleniumMiddleware:
@@ -72,26 +77,15 @@ class SeleniumMiddleware:
             from selenium.webdriver.chrome.service import Service as ChromeService
 
             if driver_name and driver_name.lower() == 'chrome':
-                # options = webdriver.ChromeOptions()
-                # options.add_argument(o)
-
-                # driver_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36")
-                # driver_options.add_argument("--user-data-dir=/home/vladyslav/.config/google-chrome/")
-                # driver_options.add_argument("--profile-directory=Profile 2")
-                #
-                # self.driver = webdriver.Chrome(options=driver_options,
-                #                                service=ChromeService(ChromeDriverManager().install()))
-
-
                 # Default variant with profile enabled
-                # version_main = current installed chrome version
+                # version_main = current installed Chrome version
 
                 options = undetected_chromedriver.ChromeOptions()
                 options.add_argument("--user-data-dir=/home/vladyslav/.config/google-chrome/")
-                options.add_argument("--profile-directory=Profile 2")
-                self.driver = undetected_chromedriver.Chrome(options=options, version_main=126,
+                options.add_argument(f"--profile-directory={os.getenv('chrome_profile_name')}")
+                self.driver = undetected_chromedriver.Chrome(options=options,
+                                                             version_main=int(os.getenv('chrome_version')),
                                                              service=ChromeService(ChromeDriverManager().install()))
-                # self.driver.set_page_load_timeout(15)
 
     @classmethod
     def from_crawler(cls, crawler):
