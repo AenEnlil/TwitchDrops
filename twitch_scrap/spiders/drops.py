@@ -1,6 +1,7 @@
 from time import sleep
 
 import scrapy
+import numpy as np
 from database.core import db_session
 from database.service import save_to_database, TableNamesMap, close_ended_campaigns, delete_ended_campaigns
 from datetime import datetime
@@ -85,20 +86,59 @@ class DropsSpider(scrapy.Spider):
 
         return data_item
 
+    def extract_multiple_campaigns(self, data: list):
+        extracted_campaigns = []
+        game_name, company = data[0], data[1]
+        game = np.array(data[3:])
+        separator_indexes = np.where(game == 'Watch to Redeem')[0]
+        game = game.tolist()
+        for index, sep_index in enumerate(separator_indexes):
+            temp = []
+            to_append = []
+            if sep_index != separator_indexes[-1]:
+                start, end = sep_index - 1, separator_indexes[index + 1] - 1
+                temp.extend(game[start:end])
+            else:
+                start = sep_index - 1
+                temp.extend(game[start:])
+            to_append.extend([game_name, company, temp[2], temp[0]])
+            reward_block_start_index, reward_block_end_index = temp.index('Rewards'), temp.index('How to Earn the Drop')
+            to_append.extend(temp[reward_block_start_index + 1:reward_block_end_index])
+
+            extracted_campaigns.append(to_append)
+        return extracted_campaigns
+
+    # def extract_game_data(self, data: list):
+    #     game_data = []
+    #
+    #     for game in data:
+    #         extracted_data = []
+    #         extracted_data.extend(game[0:4])
+    #         reward_block_start_index, reward_block_end_index = game.index('Rewards'), game.index('How to Earn the Drop')
+    #         extracted_data.extend(game[reward_block_start_index+1:reward_block_end_index])
+    #         game_data.append(extracted_data)
+    #     return game_data
 
     def extract_game_data(self, data: list):
         game_data = []
 
         for game in data:
             extracted_data = []
-            extracted_data.extend(game[0:4])
-            reward_block_start_index, reward_block_end_index = game.index('Rewards'), game.index('How to Earn the Drop')
-            extracted_data.extend(game[reward_block_start_index+1:reward_block_end_index])
-            game_data.append(extracted_data)
+
+            if game.count('Watch to Redeem') > 1:
+                extracted_campaigns = self.extract_multiple_campaigns(game)
+                game_data.extend(extracted_campaigns)
+            else:
+                extracted_data.extend(game[0:4])
+                reward_block_start_index, reward_block_end_index = game.index('Rewards'), game.index(
+                    'How to Earn the Drop')
+                extracted_data.extend(game[reward_block_start_index + 1:reward_block_end_index])
+                game_data.append(extracted_data)
         return game_data
 
     def extract_block_data(self, block_name: str, data: list):
-        # TODO: fix bug - while extracting data if game contains more than one campaign next game will be skipped
+        # TODO: fix bug - while extracting data if game have more than one campaign and anomal layout it will break
+        #  data extraction for next game
         separated_data = []
         word_separator = self.data_extract_config.get(block_name).get('word_separator')
         index_increment = self.data_extract_config.get(block_name).get('index_increment', 1)
