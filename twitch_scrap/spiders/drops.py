@@ -19,6 +19,7 @@ class DropsSpider(scrapy.Spider):
     block_additional_information = {'open_drop_campaigns': {'status': 'open'},
                                     'closed_drop_campaigns': {'status': 'closed'}}
     excluded_words = {'company': ['Use', "Watch to Redeem"]}
+    reward_block_start_identifier, reward_block_end_identifier = 'Rewards', 'How to Earn the Drop'
 
     def start_requests(self):
         url = "https://www.twitch.tv/drops/campaigns"
@@ -87,6 +88,13 @@ class DropsSpider(scrapy.Spider):
 
         return data_item
 
+    def extract_rewards(self, data: list):
+        rewards = []
+        reward_block_start_index, reward_block_end_index = data.index(self.reward_block_start_identifier), \
+            data.index(self.reward_block_end_identifier)
+        rewards.append(data[reward_block_start_index+1:reward_block_end_index])
+        return rewards
+
     def extract_multiple_campaigns(self, multi_campaign_identifier: str, data: list):
         extracted_campaigns = []
         game_name, company = data[0], data[1]
@@ -103,8 +111,7 @@ class DropsSpider(scrapy.Spider):
                 start = sep_index - 1
                 temp.extend(game[start:])
             to_append.extend([game_name, company, temp[2], temp[0]])
-            reward_block_start_index, reward_block_end_index = temp.index('Rewards'), temp.index('How to Earn the Drop')
-            to_append.extend(temp[reward_block_start_index + 1:reward_block_end_index])
+            to_append.extend(self.extract_rewards(temp))
 
             extracted_campaigns.append(to_append)
         return extracted_campaigns
@@ -120,9 +127,7 @@ class DropsSpider(scrapy.Spider):
                 game_data.extend(extracted_campaigns)
             else:
                 extracted_data.extend(game[0:4])
-                reward_block_start_index, reward_block_end_index = game.index('Rewards'), game.index(
-                    'How to Earn the Drop')
-                extracted_data.extend(game[reward_block_start_index + 1:reward_block_end_index])
+                extracted_data.extend(self.extract_rewards(game))
                 game_data.append(extracted_data)
         return game_data
 
