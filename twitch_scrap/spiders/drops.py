@@ -3,7 +3,8 @@ from time import sleep
 import scrapy
 import numpy as np
 from database.core import db_session
-from database.service import save_to_database, TableNamesMap, close_ended_campaigns, delete_ended_campaigns
+from database.service import save_to_database, TableNamesMap, close_ended_campaigns, delete_ended_campaigns, \
+    remove_duplicates
 from datetime import datetime
 from scrapy_selenium import SeleniumRequest
 
@@ -179,7 +180,10 @@ class DropsSpider(scrapy.Spider):
         return extracted_data
 
     def save_data(self, data_to_save: list):
-        save_to_database(db_session, TableNamesMap.campaigns.value, data_to_save, exclude_duplicates=True)
+        table = TableNamesMap.campaigns.value
+        new_campaigns = remove_duplicates(db_session, table, data_to_save)
+        if new_campaigns:
+            save_to_database(db_session, table, new_campaigns)
 
     def parse(self, response):
         drop_blocks = response.xpath("//div[@class='Layout-sc-1xcs6mc-0 jmLWIr drops-root__content']/div")

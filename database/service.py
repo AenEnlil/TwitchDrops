@@ -101,12 +101,7 @@ def remove_duplicates(session, tablename, data: list) -> list:
     return data_without_duplicates
 
 
-def save_to_database(session, tablename, data, exclude_duplicates=False):
-    # TODO: maybe move duplicates handling to scrap part
-
-    if exclude_duplicates:
-        data = remove_duplicates(session, tablename, data)
-
+def save_to_database(session, tablename, data):
     prepared_data = prepare_data_to_save(tablename, data)
 
     session.add_all(prepared_data)
