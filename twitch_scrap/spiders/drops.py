@@ -13,7 +13,8 @@ class DropsSpider(scrapy.Spider):
     allowed_domains = ["twitch.tv", "www.google.com.ua"]
     open_campaigns_index, closed_campaign_index = None, None
     data_extract_config = {'open_reward_campaigns': {'word_separator': 'Drops Inventory'},
-                           'open_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2},
+                           'open_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2,
+                                                   'multi_campaign_identifier': 'Watch to Redeem'},
                            'closed_drop_campaigns': {'word_separator': '(Required)', 'index_increment': 2}}
     block_additional_information = {'open_drop_campaigns': {'status': 'open'},
                                     'closed_drop_campaigns': {'status': 'closed'}}
@@ -86,11 +87,11 @@ class DropsSpider(scrapy.Spider):
 
         return data_item
 
-    def extract_multiple_campaigns(self, data: list):
+    def extract_multiple_campaigns(self, multi_campaign_identifier: str, data: list):
         extracted_campaigns = []
         game_name, company = data[0], data[1]
         game = np.array(data[3:])
-        separator_indexes = np.where(game == 'Watch to Redeem')[0]
+        separator_indexes = np.where(game == multi_campaign_identifier)[0]
         game = game.tolist()
         for index, sep_index in enumerate(separator_indexes):
             temp = []
@@ -108,25 +109,14 @@ class DropsSpider(scrapy.Spider):
             extracted_campaigns.append(to_append)
         return extracted_campaigns
 
-    # def extract_game_data(self, data: list):
-    #     game_data = []
-    #
-    #     for game in data:
-    #         extracted_data = []
-    #         extracted_data.extend(game[0:4])
-    #         reward_block_start_index, reward_block_end_index = game.index('Rewards'), game.index('How to Earn the Drop')
-    #         extracted_data.extend(game[reward_block_start_index+1:reward_block_end_index])
-    #         game_data.append(extracted_data)
-    #     return game_data
-
-    def extract_game_data(self, data: list):
+    def extract_game_data(self, multi_campaign_identifier: str, data: list):
         game_data = []
 
         for game in data:
             extracted_data = []
 
-            if game.count('Watch to Redeem') > 1:
-                extracted_campaigns = self.extract_multiple_campaigns(game)
+            if game.count(multi_campaign_identifier) > 1:
+                extracted_campaigns = self.extract_multiple_campaigns(multi_campaign_identifier, game)
                 game_data.extend(extracted_campaigns)
             else:
                 extracted_data.extend(game[0:4])
@@ -148,7 +138,8 @@ class DropsSpider(scrapy.Spider):
             separated_data.append(data[0:word_index + index_increment])
             data = [value for index, value in enumerate(data) if index not in range(0, word_index + index_increment)]
 
-        separated_data = self.extract_game_data(separated_data)
+        multi_campaign_identifier = self.data_extract_config.get(block_name).get('multi_campaign_identifier')
+        separated_data = self.extract_game_data(multi_campaign_identifier, separated_data)
 
         separated_data = list(map(lambda data_list: ({'game': data_list[0], 'company': data_list[1],
                                                       'campaign_dates': data_list[2], 'campaign_name': data_list[3],
