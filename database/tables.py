@@ -7,6 +7,8 @@ Base = declarative_base()
 
 status_validation = "status == 'open' or status == 'closed'"
 
+# TODO: separate subscribed games into separate table
+
 
 class Campaigns(Base):
 
