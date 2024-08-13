@@ -166,3 +166,12 @@ def delete_ended_campaigns(session):
     if ended_campaigns_id:
         session.query(Campaigns).filter(Campaigns.id.in_(ended_campaigns_id)).delete()
         session.commit()
+
+
+def get_users_subscribed_for_game(session, game: str):
+    statement = select(Users.user_id, Users.subscribed_games)
+    query_result = session.execute(statement).all()
+
+    users = [item._asdict() for item in query_result]
+    filtered_users = list(filter(lambda user: (game in user.get('subscribed_games')), users))
+    return filtered_users

@@ -1,6 +1,6 @@
 from numpy import array_split
 
-from text import game_response_template
+from bot.text import game_response_template
 
 
 def process_subscribe_games_data(games: str):

@@ -1,7 +1,10 @@
-from time import sleep
-
+import os
 import scrapy
 import numpy as np
+
+from requests import post
+from json import dumps
+
 from database.core import db_session
 from database.service import save_to_database, TableNamesMap, close_ended_campaigns, delete_ended_campaigns, \
     remove_duplicates
@@ -90,10 +93,9 @@ class DropsSpider(scrapy.Spider):
         return data_item
 
     def extract_rewards(self, data: list):
-        rewards = []
         reward_block_start_index, reward_block_end_index = data.index(self.reward_block_start_identifier), \
             data.index(self.reward_block_end_identifier)
-        rewards.append(data[reward_block_start_index+1:reward_block_end_index])
+        rewards = data[reward_block_start_index+1:reward_block_end_index]
         return rewards
 
     def extract_multiple_campaigns(self, multi_campaign_identifier: str, data: list):
@@ -182,6 +184,14 @@ class DropsSpider(scrapy.Spider):
     def save_data(self, data_to_save: list):
         table = TableNamesMap.campaigns.value
         new_campaigns = remove_duplicates(db_session, table, data_to_save)
+
+        import datetime
+        date_encoder = lambda obj: (
+                                obj.isoformat()
+                                if isinstance(obj, datetime.datetime)
+                                or isinstance(obj, datetime.date)
+                                else None)
+        post(f"http://{os.getenv('hostname')}/campaigns/notify-users", data=dumps(new_campaigns, default=date_encoder))
         if new_campaigns:
             save_to_database(db_session, table, new_campaigns)
 
