@@ -11,7 +11,7 @@ from json import dumps
 from utils import form_response_message, process_subscribe_games_data
 from keyboard import menu
 from text import greet, menu_text, help_text, error_text, subscribed_successfully_text, \
-    no_campaigns_for_subscribed_games_text
+    no_campaigns_for_subscribed_games_text, game_response_template
 
 router = Router()
 
@@ -47,7 +47,7 @@ async def game_subscribe(msg: Message, command: CommandObject):
 @router.callback_query(F.data == "get_all_campaigns")
 async def get_all_drop_campaigns(callback: CallbackQuery):
     result = get(f"http://{os.getenv('hostname')}/campaigns/all").json()
-    messages = form_response_message(result)
+    messages = form_response_message(result, game_response_template)
     bot = callback.bot
     chat_id = callback.message.chat.id
 
@@ -74,7 +74,7 @@ async def filter_drop_campaigns_by_subscribed_games(callback: CallbackQuery):
         await bot.send_message(chat_id=chat_id, text=no_campaigns_for_subscribed_games_text, reply_markup=menu)
         return await callback.answer()
 
-    messages = form_response_message(json)
+    messages = form_response_message(json, game_response_template)
 
     try:
         for message in messages:

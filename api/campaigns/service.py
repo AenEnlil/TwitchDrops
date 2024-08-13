@@ -20,6 +20,7 @@ def get_subscribed_campaigns(user_id: int):
     campaigns = get_campaigns_by_game(db_session, subscribed_games)
     return campaigns
 
+
 def group_campaigns_by_game(campaigns: list):
     campaigns_grouped_by_game = defaultdict(list)
 
